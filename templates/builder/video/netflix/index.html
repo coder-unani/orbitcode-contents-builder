@@ -1,0 +1,113 @@
+{% extends "../../../base.html" %}
+
+{% load static %}
+
+{% block head %} 
+<script src="{% static 'js/builder/video/netflix/index.js' %}" defer></script> 
+{% endblock head %}
+
+{% block title %}
+컨텐츠 빌더 > 비디오 > 넷플릭스
+{% endblock title %}
+
+{% block content %}
+    <form name="frm_search" action="{% url "builder-video:netflix" %}" method="get" onsubmit="return false;">
+        <input type="hidden" name="search_ids" value="{{ search_ids }}">
+        <div class="flex">
+            <div class="flex px-2 gap-2 jsutify-center items-center">
+                <input type="text" id="input_search_ids" class="h-9 px-2 outline-none border border-solid border-violet-500 rounded-md" />
+                <button type="button" id="btn_add_ids" 
+                    class="px-4 py-2 font-semibold text-sm bg-violet-500 text-white rounded-md shadow-sm hover:scale-125 hover:bg-violet-800 ease-in-out duration-150">
+                    ID 추가
+                </button>
+                <button type="button" id="btn_frm_search" 
+                    class="px-4 py-2 font-semibold text-sm bg-violet-500 text-white rounded-md shadow-sm hover:scale-125 hover:bg-violet-800 ease-in-out duration-150 hidden">
+                    가져오기
+                </button>
+                {% if contents is not None %}
+                <button type="button" id="btn_frm_submit" 
+                    class="px-4 py-2 font-semibold text-sm bg-violet-500 text-white rounded-md shadow-sm hover:scale-125 hover:bg-violet-800 ease-in-out duration-150">
+                    저장하기
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <div id="div_ids_field" class="mt-2 p-2"></div>
+    </form>
+
+    <form name="frm_contents" action="{% url "builder-video:netflix" %}" method="post" onsubmit="return false;">
+        {% csrf_token %}
+        <input type="hidden" name="content_ids" value="{{ content_ids|join:", "|escape }}">
+        {% if contents is not None %}
+            <div class="px-2 py-2">
+                <h2>넷플릭스 컨텐츠 리스트</h2>
+                <span class="font-bold">검색결과</span>
+                <span class="font-bold">총 {{ contents|length }}건</span>
+                <ul>
+                    {% for content in contents %}
+                        <li class="flex items-center py-4 hover:bg-violet-500 hover:text-white">
+                            <input type="hidden" name="content_{{ content.platform_id }}" value="{{ content }}"/>
+                            <span class="font-bold h-20 px-2 py-2">{{ content.rank }}</span>
+                            <img src="{{ content.thumbnails.12 }}" alt="{{ content.title }}" class="h-20 rounded-xl mr-4" />
+                            <div>
+                                <div class="mb-1">
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">제목</span>
+                                    <span>{{ content.title }}</span>
+                                </div>
+                                <div class="mb-1">
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">출시일</span>
+                                    <span>{{ content.release }}</span>
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">연령고지</span>
+                                    <span>{{ content.notice_age }}</span>
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">런타임</span>
+                                    <span>{{ content.runtime }}</span>
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">장르</span>
+                                    <span>
+                                        {% for genre in content.genres %}
+                                            {{ genre.name }},
+                                        {% endfor %}
+                                    </span>
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">출연</span>
+                                    <span>
+                                        {% for cast in content.casts %}
+                                            {{ cast.name }},
+                                        {% endfor %}
+                                    </span>
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">제작</span>
+                                    <span>
+                                        {% for staff in content.staffs %}
+                                            {{ staff.name }},
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                <div class="mb-1">
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">시놉시스</span>
+                                    <span>{{ content.synopsis}}</span>
+                                </div>
+                                <div>
+                                    <span class="px-1 py-1 mr-1 bg-gray-200">보러가기</span>
+                                    <span>
+                                        <a href="{{ content.watchs.10 }}" target="_blank">{{ content.watchs.10 }}</a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="px-2 bg-gray-200 h-24">
+                                <p class="text-center">비디오 종류 선택</p>
+                                <div>
+                                    <label>
+                                        <input type="radio" name="content_kind_{{ content.platform_id }}" value="movie"/>
+                                        <span>영화</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="content_kind_{{ content.platform_id }}" value="series"/>
+                                        <span>시리즈</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </form>
+{% endblock content %}

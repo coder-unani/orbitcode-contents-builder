@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Manager</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src={% static "js/base.js" %} defer></script>
+    <link rel="stylesheet" href={% static "css/base.css" %}>
+    <!-- Custom CSS & JavaScript -->
+    {% block head %} {% endblock head %}
+</head>
+<body class="bg-gray-100">
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        {% include "./header.html" %}
+        <div class="flex-auto flex justify-center">
+            {% if user.is_authenticated %}
+                <!-- Nav -->
+                {% include "./nav.html" %}
+            {% endif %}
+            <main class="flex-auto mx-4 bg-white rounded-lg shadow dark:bg-gray-800">
+                <div class="p-4">
+                    <!-- Contents Title -->
+                    <h1>{% block title %} {% endblock title %}</h1>
+                </div>
+                <!-- Contents -->
+                <div class="p-4">
+                    {% block content %}
+                    {% endblock content %}
+                </div>
+            </main>
+        </div>
+        <!-- Footer -->
+        {% include "./footer.html" %}
+    </div>
+    <!-- Loading -->
+    {% include "./loading.html" %}
+</body>
+</html>

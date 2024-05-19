@@ -1,0 +1,13 @@
+<header class="flex-none bg-white rounded-lg shadow m-4 dark:bg-gray-800">
+    <div class="flex justify-between w-full p-4 text-gray-500">
+        <h1>ORBITCODE 컨텐츠 빌더</h1>
+        <div>
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="text-red-300 hover:underline">로그아웃</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</header>

@@ -1,0 +1,13 @@
+<aside class="w-48 flex-none bg-white text-indigo-900 rounded-lg shadow ml-4 dark:bg-gray-800">
+    <div class="p-4">
+        <h1 class="text-slate-500 text-center">
+            관리자 메뉴
+        </h1>
+    </div>
+    <nav>
+        <a href={% url "dashboard:index" %} class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">대시보드</a>
+        <a href={% url "contents:index" %} class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">컨텐츠 관리</a>
+        <a href={% url "accounts:index" %} class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">사용자 관리</a>
+        <a href="/admin/" class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">데이터베이스 관리</a>
+    </nav>
+</aside>
