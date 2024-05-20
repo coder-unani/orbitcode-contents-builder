@@ -104,7 +104,7 @@ class VideoGenre(models.Model):
 class VideoThumbnail(models.Model):
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = poster, 11 = thumbnail
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="thumbnails") # 비디오 ID
-    thumbnail = models.CharField(max_length=200, null=False) # 썸네일
+    thumbnail = models.CharField(max_length=500, null=False) # 썸네일
     extension = models.CharField(max_length=10, null=False) # 확장자
     size = models.BigIntegerField(null=True) # 사이즈
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
