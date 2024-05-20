@@ -2,13 +2,13 @@ from django.db import transaction
 
 from builder_video.models import (
     Video,
-    VideoCast,
+    VideoActor,
     VideoStaff,
     VideoGenre,
     VideoThumbnail,
     VideoWatch,
     VideoKeyword,
-    Cast,
+    Actor,
     Staff,
     Genre,
 )
@@ -18,7 +18,7 @@ create video
 '''
 def create_video(new_video):
     video = Video.objects.create(
-        kind = new_video['kind'],
+        type = new_video['type'],
         title = new_video['title'],
         synopsis = new_video['synopsis'],
         release = new_video['release'],
@@ -31,20 +31,18 @@ def create_video(new_video):
 
     return video
 
-def create_cast(new_cast):
-    cast = Cast.objects.create(
-        kind = new_cast['kind'],
+def create_actor(new_cast):
+    actor = Actor.objects.create(
         name = new_cast['name'],
         picture = new_cast['picture'] if new_cast['picture'] else "",
         profile = new_cast['profile'] if new_cast['profile'] else "",
     )
-    cast.save()
+    actor.save()
 
-    return cast
+    return actor
 
 def create_staff(new_staff):
     staff = Staff.objects.create(
-        kind = new_staff['kind'],
         name = new_staff['name'],
         picture = new_staff['picture'] if new_staff['picture'] else "",
         profile = new_staff['profile'] if new_staff['profile'] else "",
@@ -61,24 +59,23 @@ def create_genre(new_genre):
 
     return genre
 
-def create_video_cast(video, new_cast):
-    print("create_video_cast", video, new_cast)
-    cast = Cast.objects.filter(name=new_cast['name'])
-    if cast.exists():
-        cast = cast.first()
+def create_video_actor(video, new_actor):
+    actor = Actor.objects.filter(name=new_actor['name'])
+    if actor.exists():
+        actor = actor.first()
     else:
-        cast = create_cast(new_cast)
+        actor = create_actor(new_actor)
 
-    video_cast = VideoCast.objects.create(
+    video_actor = VideoActor.objects.create(
         video = video,
-        cast = cast,
-        role = new_cast['role'],
+        actor = actor,
+        type = new_actor['type'],
+        role = new_actor['role'],
     ).save()
 
-    return video_cast
+    return video_actor
 
 def create_video_staff(video, new_staff):
-    print("create_video_staff", new_staff)
     staff = Staff.objects.filter(name=new_staff['name'])
     if staff.exists():
         staff = staff.first()
@@ -88,13 +85,12 @@ def create_video_staff(video, new_staff):
     video_staff = VideoStaff.objects.create(
         video = video,
         staff = staff,
-        role = new_staff['role'],
+        type = new_staff['type'],
     ).save()
 
     return video_staff
 
 def create_video_genre(video, new_genre):
-    print("create_video_genre", new_genre)
     genre = Genre.objects.filter(name=new_genre['name'])
     if genre.exists():
         genre = genre.first()
@@ -109,10 +105,9 @@ def create_video_genre(video, new_genre):
     return video_genre
 
 def create_video_thumbnail(video, new_thumbnail):
-    print("create_video_thumbnail", new_thumbnail)
     video_thumbnail = VideoThumbnail.objects.create(
         video = video,
-        kind = new_thumbnail['kind'],
+        type = new_thumbnail['type'],
         thumbnail = new_thumbnail['thumbnail'],
         extension = new_thumbnail['extension'],
         size = new_thumbnail['size'],
@@ -121,10 +116,9 @@ def create_video_thumbnail(video, new_thumbnail):
     return video_thumbnail
 
 def create_video_watch(video, new_watch):
-    print("create_video_watch", new_watch)
     video_watch = VideoWatch.objects.create(
         video = video,
-        kind = new_watch['kind'],
+        type = new_watch['type'],
         url = new_watch['url'],
     ).save()
 
@@ -135,8 +129,8 @@ def create_content_data(new_content):
     try:
         with transaction.atomic():
             video = create_video(new_content)
-            for new_cast in new_content['casts']:
-                create_video_cast(video, new_cast)
+            for new_actor in new_content['actors']:
+                create_video_actor(video, new_actor)
             for new_staff in new_content['staffs']:
                 create_video_staff(video, new_staff)
             for new_genre in new_content['genres']:
