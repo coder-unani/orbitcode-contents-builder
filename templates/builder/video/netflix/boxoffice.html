@@ -1,0 +1,131 @@
+{% extends "../../../base.html" %}
+{% load static %}
+
+{% block head %}
+<script src="{% static 'js/builder/video/netflix/boxoffice.js' %}" defer></script>
+{% endblock head %}
+
+{% block title %}
+컨텐츠 빌더 > 비디오 > 넷플릭스 TOP10 
+{% endblock title %}
+
+{% block content %}
+
+<form name="frmSearch" method="get" action={% url "builder-video:netflix-boxoffice" %}>
+    <input type="hidden" name="parser" value="{{ parser }}" />
+    <input type="hidden" name="view_mode" value="{{ view_mode }}" />
+    <div class="flex flex-row gap-2">
+    <button 
+        id="idSearch"
+        type="button"
+        class="px-4 py-2 font-semibold text-sm bg-violet-500 text-white rounded-md shadow-sm hover:scale-125 hover:bg-violet-800 ease-in-out duration-150"
+    >
+        가져오기
+    </button>
+    {% if contents %}
+        <button 
+            id="idViewMode" 
+            type="button"
+            class="px-4 py-2 font-semibold text-sm bg-violet-500 text-white rounded-md shadow-sm hover:scale-125 hover:bg-violet-800 ease-in-out duration-150"
+            data-view-mode="{{ data.view_mode }}"
+        >
+            {% if data.view_mode == "html" %} JSON 보기 {% else %} HTML 보기 {% endif %}
+        </button>
+        <button 
+            id="idSave" 
+            type="button"
+            class="px-4 py-2 font-semibold text-sm bg-violet-500 text-white rounded-md shadow-sm hover:scale-125 hover:bg-violet-800 ease-in-out duration-150"
+        >
+            저장하기
+        </button>
+    {% endif %}
+    </div>
+</form>
+
+<form name="frmSave" method="post" action={% url "builder-video:netflix-boxoffice" %}>
+    {% csrf_token %}
+    <input type="hidden" name="content_ids" value="{{ content_ids }}" />
+    <div class="flex flex-row">    
+    {% if contents and view_mode == "html" %}
+        <div class="px-2 py-2">
+            <h2>오늘 대한민국의 TOP 10 시리즈</h2>
+            <ul>
+            {% for content in contents.series %}
+            <li class="flex items-center py-4 hover:bg-violet-500 hover:text-white">
+                <input type="hidden" name="content_{{ content.platform_id }}" value="{{ content }}" />
+                <span class="font-bold h-20 px-2 py-2">{{ content.rank }}</span>
+                <img src="{{ content.thumbnails.0.thumbnail }}" alt="{{ content.title }}" class="h-24 rounded-xl mr-4" />
+                <div>
+                <h3 class="font-semibold pr-2">
+                    {{ content.title }}
+                    {% if content.is_db == "Y" %}
+                        <span class="pl-2 text-red-500">[DB있음]</span>
+                    {% else %}
+                        <span class="pl-2 text-blue-500">[DB없음]</span>
+                    {% endif %}
+                </h3>
+                <div>
+                    <span>{{ content.release }}</span>&nbsp;/&nbsp; 
+                    <span>{{ content.notice_age }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.runtime }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.genre }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.cast }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.creator }}</span>
+                </div>
+                <div>
+                    {{ content.synopsis}}
+                </div>
+                <p class="text-gray-500">
+                    <a href="{{ content.link }}" target="_blank">보러가기</a>
+                </p>
+                </div>
+            </li>
+
+            {% endfor %}
+            </ul>
+        </div>
+        <div class="px-2 py-2">
+            <h2>오늘 대한민국의 TOP 10 영화</h2>
+            <ul>
+            {% for content in contents.movies %}
+            <li class="flex items-center py-4 hover:bg-violet-500 hover:text-white">
+                <input type="hidden" name="content_{{ content.platform_id }}" value="{{ content }}" />
+                <span class="font-bold h-20 px-2 py-2">{{ content.rank }}</span>
+                <img src="{{ content.thumbnails.0.thumbnail }}" alt="{{ content.title }}" class="h-24 rounded-xl mr-4" />
+                <div>
+                <h3 class="font-semibold pr-2">
+                    {{ content.title }}
+                    {% if content.is_db == "Y" %}
+                        <span class="pl-2 text-red-500">[DB있음]</span>
+                    {% else %}
+                        <span class="pl-2 text-blue-500">[DB없음]</span>
+                    {% endif %}
+                </h3>
+                <div>
+                    <span>{{ content.release }}</span>&nbsp;/&nbsp; 
+                    <span>{{ content.notice_age }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.runtime }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.genre }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.cast }}</span>&nbsp;/&nbsp;
+                    <span>{{ content.creator }}</span>
+                </div>
+                <div>
+                    {{ content.synopsis}}
+                </div>
+                <p class="text-gray-500">
+                    <a href="{{ content.link }}" target="_blank">보러가기</a>
+                </p>
+                </div>
+            </li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% elif contents and data.view_mode == "json" %}
+        <div class="w-400 h-500 break-all bg-slate-200 p-2">
+            {{ data }}
+        </div>
+    {% elif result == "fail" %}
+        <p>{{ message }}</p>
+    {% endif %}
+</form>
+{% endblock content %}

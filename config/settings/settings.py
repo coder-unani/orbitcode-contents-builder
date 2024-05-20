@@ -23,6 +23,16 @@ environ.Env.read_env(
     env_file = os.path.join(BASE_DIR, '.env.development')
 )
 
+NETFLIX_ID = env.str('NETFLIX_ID')
+NETFLIX_PW = env.str('NETFLIX_PW')
+
+TVING_ID = env.str('TVING_ID')
+TVING_PW = env.str('TVING_PW')
+
+AWS_REGION = env.str('AWS_REGION')
+AWS_BUCKET_NAME = env.str('AWS_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -103,6 +113,9 @@ DATABASES = {
         'PASSWORD': env('DB_USER_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
+        'OPTIONS': {
+            'CONN_MAX_AGE': 60,
+        }
     }
 }
 
@@ -157,4 +170,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
 # 로그아웃 성공 시 자동으로 이동할 URL
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/account/login/'
