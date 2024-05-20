@@ -125,21 +125,26 @@ def create_video_watch(video, new_watch):
     return video_watch
 
 def create_content_data(new_content):
-    print(new_content)
+    # log_path = "data/log" + 
+
     try:
-        with transaction.atomic():
-            video = create_video(new_content)
-            for new_actor in new_content['actors']:
-                create_video_actor(video, new_actor)
-            for new_staff in new_content['staffs']:
-                create_video_staff(video, new_staff)
-            for new_genre in new_content['genres']:
-                create_video_genre(video, new_genre)
-            for new_thumbnail in new_content['thumbnails']:
-                create_video_thumbnail(video, new_thumbnail)
-            for new_watch in new_content['watchs']:
-                create_video_watch(video, new_watch)
-        return True
+        video = Video.objects.filter(platform_id=new_content['platform_id'])
+        if not video.exists():
+            with transaction.atomic():
+                video = create_video(new_content)
+                for new_actor in new_content['actors']:
+                    create_video_actor(video, new_actor)
+                for new_staff in new_content['staffs']:
+                    create_video_staff(video, new_staff)
+                for new_genre in new_content['genres']:
+                    create_video_genre(video, new_genre)
+                for new_thumbnail in new_content['thumbnails']:
+                    create_video_thumbnail(video, new_thumbnail)
+                for new_watch in new_content['watchs']:
+                    create_video_watch(video, new_watch)
+            return True
+        else:
+            return True
     except Exception as e:
         print(e)
         return False
