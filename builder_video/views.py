@@ -29,10 +29,6 @@ class NetflixView(ListView):
         if html:
             bs4 = NetflixParser(html=html)
             content = bs4.parse_content_netflix()
-            content['platform_id'] = search_id
-            content['watchs'] = [
-                {"kind": "11", "url": URL_NETFLIX_CONTENT + search_id}
-            ]
             bs4.close()
             return content
         else:
