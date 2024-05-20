@@ -48,7 +48,9 @@
                         <li class="flex items-center py-4 hover:bg-violet-500 hover:text-white">
                             <input type="hidden" name="content_{{ content.platform_id }}" value="{{ content }}"/>
                             <span class="font-bold h-20 px-2 py-2">{{ content.rank }}</span>
-                            <img src="{{ content.thumbnails.12 }}" alt="{{ content.title }}" class="h-20 rounded-xl mr-4" />
+                            {% for thumbnail in content.thumbnails %}
+                                <img src="{{ thumbnail.thumbnail }}" alt="{{ content.title }}" class="h-20 rounded-xl mr-4" />
+                            {% endfor %}
                             <div>
                                 <div class="mb-1">
                                     <span class="px-1 py-1 mr-1 bg-gray-200">제목</span>
@@ -69,8 +71,8 @@
                                     </span>
                                     <span class="px-1 py-1 mr-1 bg-gray-200">출연</span>
                                     <span>
-                                        {% for cast in content.casts %}
-                                            {{ cast.name }},
+                                        {% for actor in content.actors %}
+                                            {{ actor.name }},
                                         {% endfor %}
                                     </span>
                                     <span class="px-1 py-1 mr-1 bg-gray-200">제작</span>
@@ -87,7 +89,9 @@
                                 <div>
                                     <span class="px-1 py-1 mr-1 bg-gray-200">보러가기</span>
                                     <span>
-                                        <a href="{{ content.watchs.10 }}" target="_blank">{{ content.watchs.10 }}</a>
+                                        {% for watch in content.watchs %}
+                                            <a href="{{ watch.url }}" target="_blank">{{ watch.url }}</a>
+                                        {% endfor %}
                                     </span>
                                 </div>
                             </div>
@@ -95,11 +99,19 @@
                                 <p class="text-center">비디오 종류 선택</p>
                                 <div>
                                     <label>
-                                        <input type="radio" name="content_kind_{{ content.platform_id }}" value="movie"/>
+                                        {% if content.type == "10" %}
+                                            <input type="radio" name="content_kind_{{ content.platform_id }}" value="10" checked/>
+                                        {% else %}
+                                            <input type="radio" name="content_kind_{{ content.platform_id }}" value="10"/>
+                                        {% endif %}
                                         <span>영화</span>
                                     </label>
                                     <label>
-                                        <input type="radio" name="content_kind_{{ content.platform_id }}" value="series"/>
+                                        {% if content.type == "11" %}
+                                            <input type="radio" name="content_kind_{{ content.platform_id }}" value="11" checked/>
+                                        {% else %}
+                                            <input type="radio" name="content_kind_{{ content.platform_id }}" value="11"/>
+                                        {% endif %}
                                         <span>시리즈</span>
                                     </label>
                                 </div>
