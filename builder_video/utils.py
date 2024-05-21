@@ -33,15 +33,3 @@ def get_file_size(file):
         return os.path.getsize(file)
     else:
         return None
-
-def write_log(log_path, message):
-    with open(log_path, "a") as file:
-        file.write(message + "\n")
-
-def write_db_log(type, message):
-    log_path = "data/log/db_{}_{}_{}.log".format(datetime.now().year, datetime.now().month, datetime.now().day)
-    log_message = "[{}]".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f"))
-    log_message += "[{}]".format(type)
-    log_message += " - {}\n".format(message)
-    with open(log_path, "a") as file:
-        file.write(message + "\n")
