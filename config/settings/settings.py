@@ -113,9 +113,7 @@ DATABASES = {
         'PASSWORD': env('DB_USER_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
-        'OPTIONS': {
-            'CONN_MAX_AGE': 60,
-        }
+        'CONN_MAX_AGE': 60,
     }
 }
 
