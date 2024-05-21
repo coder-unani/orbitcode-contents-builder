@@ -1,0 +1,84 @@
+{% extends "../../../base.html" %}
+{% load static %}
+
+{% block head %} 
+<script src="{% static 'js/builder/video/netflix/index.js' %}" defer></script> 
+{% endblock head %}
+
+{% block title %}
+컨텐츠 빌더 > 비디오 > 넷플릭스 > 상세보기
+{% endblock title %}
+
+{% block content %}
+<div class="container mx-auto px-2">
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gray-200 px-4 py-2 flex flex-row justify-center item-center">
+            <div class="grow text-3xl font-bold text-gray-800">{{ content.title }}</div>
+            <div class="text-gray-700 px-2 flex justify-center items-center">
+                <span>평점</span> 
+                <span class="pl-2">{{ content.grade }}</span>
+            </div>
+            <div class="text-gray-700 px-2 flex justify-center items-center">
+                <span>좋아요</span> 
+                <span class="pl-2">{{ content.like_count }}</span>
+            </div>
+            <div class="text-gray-700 px-2 flex justify-center items-center">
+                <span>조회수</span> 
+                <span class="pl-2">{{ content.view_count }}</span>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+            {% for thumbnail in thumbnails %}
+            <div>
+                <img src={{ thumbnail.presigned_url }} alt="영화 이미지" class="h-auto w-full rounded-lg shadow-md">
+            </div>
+            {% endfor %}
+        </div>
+        <div class="p-4">
+            <input type="hidden" name="genre" value="{{ content.genre.all|join:", "|escape }}" />
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">장르</div> 
+                <div class="inline-block text-gray-800">
+                    {% for genre in content.genre.all %}
+                    {{ genre.name }}
+                    {% endfor %}
+
+                </div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">출시일</div> 
+                <div class="inline-block text-gray-800">{{ content.release }}</div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">런타임</div> 
+                <div class="inline-block text-gray-800">{{ content.runtime }}</div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">연령고지</div> 
+                <div class="inline-block text-gray-800">{{ content.notice_age }}</div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">시놉시스</div> 
+                <div class="inline-block text-gray-800">{{ content.synopsis }}</div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">출연진</div> 
+                <div class="inline-block text-gray-800">{{ content.actor.all }}</div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">제작진</div>
+                <div class="inline-block text-gray-800">{{ content.staff.all }}</div>
+            </div>
+            
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">태그</div>
+                <div class="inline-block text-gray-800"></div>
+            </div>
+            <div class="mb-1 text-gray-700">
+                <div class="inline-block w-20 p-1 bg-gray-500 text-white">관련 링크</div>
+                <div class="inline-block text-gray-800">{{ content.genre.all }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
