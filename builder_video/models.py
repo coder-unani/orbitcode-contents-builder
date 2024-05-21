@@ -25,6 +25,7 @@ class Video(models.Model):
         db_table = "content_video"
 
 class Actor(models.Model):
+    video = models.ManyToManyField(Video, through='VideoActor', related_name="actor") # 출연진
     name = models.CharField(max_length=100, null=False) # 이름
     picture = models.CharField(max_length=100, null=True) # 프로필 이미지
     profile = models.TextField(null=True) # 프로필
@@ -38,12 +39,13 @@ class Actor(models.Model):
         db_table = "content_actor"
 
 class Staff(models.Model):
+    video = models.ManyToManyField(Video, through='VideoStaff', related_name="staff") # 스태프
     name = models.CharField(max_length=100, null=False) # 이름
     picture = models.CharField(max_length=100, null=True) # 프로필 이미지
     profile = models.TextField(null=True) # 프로필
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
-
+    
     def __str__(self):
         return self.name
     
@@ -51,6 +53,7 @@ class Staff(models.Model):
         db_table = "content_staff"
 
 class Genre(models.Model):
+    video = models.ManyToManyField(Video, through='VideoGenre', related_name="genre") # 장르
     name = models.CharField(max_length=50, null=False) # 장르
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
@@ -62,9 +65,9 @@ class Genre(models.Model):
         db_table = "content_genre"
 
 class VideoActor(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE) # 비디오 ID
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE) # 출연진
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = main actor, 11 = sub actor
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="actors") # 비디오 ID
-    actor = models.ForeignKey(Actor, on_delete=models.CASCADE, related_name="video_actor") # 출연진
     role = models.CharField(max_length=100, null=True) # 역할
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
@@ -76,9 +79,9 @@ class VideoActor(models.Model):
         db_table = "content_video_actor"
 
 class VideoStaff(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE) # 비디오 ID
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE) # 스태프
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = director, 11 = creator
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="staffs") # 비디오 ID
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name="video_staff") # 스태프
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
 
@@ -90,8 +93,8 @@ class VideoStaff(models.Model):
 
 
 class VideoGenre(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="genres") # 비디오 ID
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name="video_genre") # 장르
+    video = models.ForeignKey(Video, on_delete=models.CASCADE) # 비디오 ID
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE) # 장르
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
 
@@ -102,36 +105,36 @@ class VideoGenre(models.Model):
         db_table = "content_video_genre"
 
 class VideoThumbnail(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="thumbnail") # 비디오 ID
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = poster, 11 = thumbnail
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="thumbnails") # 비디오 ID
-    thumbnail = models.CharField(max_length=500, null=False) # 썸네일
+    url = models.CharField(max_length=1000, null=False) # 썸네일
     extension = models.CharField(max_length=10, null=False) # 확장자
     size = models.BigIntegerField(null=True) # 사이즈
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
 
     def __str__(self):
-        return self.thumbnail
+        return self.url
     
     class Meta:
         db_table = "content_video_thumbnail"
 
 class VideoWatch(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="watch") # 비디오 ID
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = main contents, 11 = trailer
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="watchs") # 비디오 ID
     url = models.CharField(max_length=100, null=False) # 시청방법
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
 
     def __str__(self):
-        return self.watch
+        return self.url
     
     class Meta:
         db_table = "content_video_watch"
 
-class VideoKeyword(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="keywords") # 비디오 ID
-    keyword = models.CharField(max_length=50, null=False) # 키워드
+class VideoTag(models.Model):
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="tag") # 비디오 ID
+    name = models.CharField(max_length=50, null=False) # 키워드
     created_at = models.DateTimeField(auto_now_add=True) # 생성일
     updated_at = models.DateTimeField(auto_now=True) # 수정일
 
