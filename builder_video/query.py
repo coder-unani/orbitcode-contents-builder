@@ -1,5 +1,6 @@
 from django.db import transaction 
 
+from .logger import info_log, error_log
 from builder_video.models import (
     Video,
     VideoActor,
@@ -7,7 +8,7 @@ from builder_video.models import (
     VideoGenre,
     VideoThumbnail,
     VideoWatch,
-    VideoKeyword,
+    VideoTag,
     Actor,
     Staff,
     Genre,
@@ -60,102 +61,104 @@ def create_genre(new_genre):
     return genre
 
 def create_video_actor(video, new_actor):
-    actor = Actor.objects.filter(name=new_actor['name'])
-    if actor.exists():
-        actor = actor.first()
+    find_actor = Actor.objects.filter(name=new_actor['name']).all()
+    if find_actor.exists():
+        actor = find_actor.first()
     else:
         actor = create_actor(new_actor)
-
-    video_actor = VideoActor.objects.create(
-        video = video,
-        actor = actor,
-        type = new_actor['type'],
-        role = new_actor['role'],
-    ).save()
-
-    return video_actor
+    video.actor.add(actor)
+    
+    return True
 
 def create_video_staff(video, new_staff):
-    staff = Staff.objects.filter(name=new_staff['name'])
-    if staff.exists():
-        staff = staff.first()
+    find_staff = Staff.objects.filter(name=new_staff['name']).all()
+    if find_staff.exists():
+        staff = find_staff.first()
     else:
         staff = create_staff(new_staff)
+    video.staff.add(staff)
 
-    video_staff = VideoStaff.objects.create(
-        video = video,
-        staff = staff,
-        type = new_staff['type'],
-    ).save()
-
-    return video_staff
+    return True
 
 def create_video_genre(video, new_genre):
-    genre = Genre.objects.filter(name=new_genre['name'])
-    if genre.exists():
-        genre = genre.first()
+    find_genre = Genre.objects.filter(name=new_genre['name']).all()
+    if find_genre.exists():
+        genre = find_genre.first()
     else:
         genre = create_genre(new_genre)
-
-    video_genre = VideoGenre.objects.create(
-        video = video,
-        genre = genre,
-    ).save()
-
-    return video_genre
+    video.genre.add(genre)
+    
+    return True
 
 def create_video_thumbnail(video, new_thumbnail):
-    video_thumbnail = VideoThumbnail.objects.create(
+    VideoThumbnail.objects.create(
         video = video,
         type = new_thumbnail['type'],
-        thumbnail = new_thumbnail['thumbnail'],
+        url = new_thumbnail['url'],
         extension = new_thumbnail['extension'],
         size = new_thumbnail['size'],
     ).save()
 
-    return video_thumbnail
+    return True
 
 def create_video_watch(video, new_watch):
-    video_watch = VideoWatch.objects.create(
+    VideoWatch.objects.create(
         video = video,
         type = new_watch['type'],
         url = new_watch['url'],
     ).save()
 
-    return video_watch
+    return True
 
 def create_content_data(new_content):
-    # log_path = "data/log" + 
-
+    object_name = "create_content_data"
     try:
-        video = Video.objects.filter(platform_id=new_content['platform_id'])
-        if not video.exists():
-            with transaction.atomic():
-                video = create_video(new_content)
-                for new_actor in new_content['actors']:
-                    create_video_actor(video, new_actor)
-                for new_staff in new_content['staffs']:
-                    create_video_staff(video, new_staff)
-                for new_genre in new_content['genres']:
-                    create_video_genre(video, new_genre)
-                for new_thumbnail in new_content['thumbnails']:
-                    create_video_thumbnail(video, new_thumbnail)
-                for new_watch in new_content['watchs']:
-                    create_video_watch(video, new_watch)
-            return True
-        else:
-            return True
+        with transaction.atomic():
+            video = create_video(new_content)
+            for new_actor in new_content['actor']:
+                create_video_actor(video, new_actor)
+            for new_staff in new_content['staff']:
+                create_video_staff(video, new_staff)
+            for new_genre in new_content['genre']:
+                create_video_genre(video, new_genre)
+            for new_watch in new_content['watch']:
+                create_video_watch(video, new_watch)
+            for new_thumbnail in new_content['thumbnail']:
+                create_video_thumbnail(video, new_thumbnail)
+        info_log(object_name, "Created video data. platform_id: {} / id: {}".format(new_content['platform_id'], video.id))
+        return video
     except Exception as e:
-        print(e)
+        error_log(object_name, "Video data creation failed. platform_id: {} / {}".format(new_content['platform_id'], e))
         return False
 
+def exist_content_video(id=None, platform_id=None):
+    try:
+        if id:
+            video = Video.objects.filter(id=id)
+        elif platform_id:
+            video = Video.objects.filter(platform_id=platform_id)
 
+        if video.exists():
+            return True
+        else:
+            return False
+    except Exception as e:
+        error_log("exist_video", f"Failed to check video existence. {e}")
+        return False
+    finally:
+        video = None
 '''
 get video
 '''
 def get_video(id):
-    video = Video.objects.get(id=id)
-    return video
+    try:
+        video = Video.objects.get(id=id)
+        info_log("get_video", "Video search successful with ID. {}".format(id))
+        return video
+    
+    except Exception as e:
+        error_log("get_video", "Video retrieval failed with ID. id: {id} / {e}".format(id=id, e=e))
+        return None
     
 def get_video_by_platform_id(platform_id):
     video = Video.objects.get(platform_id=platform_id)
