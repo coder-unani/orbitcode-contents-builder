@@ -1,5 +1,4 @@
 {% extends "../../../base.html" %}
-
 {% load static %}
 
 {% block head %} 
@@ -34,6 +33,12 @@
         </div>
         <div id="div_ids_field" class="mt-2 p-2"></div>
     </form>
+
+    {% if message %}
+    <div class="px-2 py-2 bg-red-500 text-white">
+        {{ message }}
+    </div>
+    {% endif %}
 
     <form name="frm_contents" action="{% url "builder-video:netflix" %}" method="post" onsubmit="return false;">
         {% csrf_token %}
