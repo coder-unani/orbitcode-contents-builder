@@ -23,9 +23,11 @@ from .properties import (
 DJANGO_LOGIN_URL = "/account/login/"
 DJANGO_REDIRECT_FIELD_NAME = "next"
 
+
 # Create your views here.
 def index(request):
     return render(request, "builder/video/index.html")
+
 
 class NetflixFindView(LoginRequiredMixin, ListView):
     # login_url = reverse("account:login")
@@ -33,7 +35,7 @@ class NetflixFindView(LoginRequiredMixin, ListView):
     redirect_field_name = DJANGO_REDIRECT_FIELD_NAME
     template_name = "builder/video/netflix/index.html"
 
-    def get(self, request):
+    def get(self, request, **kwargs):
 
         search_ids = request.GET.get('search_ids')
         context = dict()
@@ -77,7 +79,7 @@ class NetflixBoxOfficeView(LoginRequiredMixin, ListView):
     template_name = "builder/video/netflix/boxoffice.html"
     contents_file = "data/netflix/boxoffice/{}_{}_{}_{}_{}.json".format("10", datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour)
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         # scrap == on 데이터 파싱 시작
         parser = request.GET.get('parser')
         view_mode = "html"
@@ -209,7 +211,7 @@ class NetflixDetailView(LoginRequiredMixin, DetailView):
     redirect_field_name = DJANGO_REDIRECT_FIELD_NAME
     template_name = "builder/video/netflix/detail.html"
 
-    def get(self, request, pk):
+    def get(self, request, pk, *args, **kwargs):
 
         video = get_video(pk)
 
