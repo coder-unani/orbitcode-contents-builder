@@ -22,7 +22,7 @@ class S3Client:
         info_log(self.__class__.__name__, "S3 client created")
         
 
-    def upload_file(self, file_path, destination="attachs/"):
+    def upload_file(self, file_path, destination):
         file_name = file_path.split('/')[-1]  
         destination = destination + file_name
         try:
