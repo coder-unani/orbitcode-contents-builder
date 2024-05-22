@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 class Video(models.Model):
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = movie, 11 = series
@@ -24,6 +25,7 @@ class Video(models.Model):
     class Meta:
         db_table = "content_video"
 
+
 class Actor(models.Model):
     video = models.ManyToManyField(Video, through='VideoActor', related_name="actor") # 출연진
     name = models.CharField(max_length=100, null=False) # 이름
@@ -37,6 +39,7 @@ class Actor(models.Model):
     
     class Meta:
         db_table = "content_actor"
+
 
 class Staff(models.Model):
     video = models.ManyToManyField(Video, through='VideoStaff', related_name="staff") # 스태프
@@ -52,6 +55,7 @@ class Staff(models.Model):
     class Meta:
         db_table = "content_staff"
 
+
 class Genre(models.Model):
     video = models.ManyToManyField(Video, through='VideoGenre', related_name="genre") # 장르
     name = models.CharField(max_length=50, null=False) # 장르
@@ -63,6 +67,7 @@ class Genre(models.Model):
     
     class Meta:
         db_table = "content_genre"
+
 
 class VideoActor(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE) # 비디오 ID
@@ -77,6 +82,7 @@ class VideoActor(models.Model):
     
     class Meta:
         db_table = "content_video_actor"
+
 
 class VideoStaff(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE) # 비디오 ID
@@ -104,6 +110,7 @@ class VideoGenre(models.Model):
     class Meta:
         db_table = "content_video_genre"
 
+
 class VideoThumbnail(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="thumbnail") # 비디오 ID
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = poster, 11 = thumbnail
@@ -119,6 +126,7 @@ class VideoThumbnail(models.Model):
     class Meta:
         db_table = "content_video_thumbnail"
 
+
 class VideoWatch(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="watch") # 비디오 ID
     type = models.CharField(max_length=2, null=False) # 타입 : 10 = main contents, 11 = trailer
@@ -132,6 +140,7 @@ class VideoWatch(models.Model):
     class Meta:
         db_table = "content_video_watch"
 
+
 class VideoTag(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="tag") # 비디오 ID
     name = models.CharField(max_length=50, null=False) # 키워드
@@ -139,7 +148,7 @@ class VideoTag(models.Model):
     updated_at = models.DateTimeField(auto_now=True) # 수정일
 
     def __str__(self):
-        return self.keyword
+        return self.name
     
     class Meta:
         db_table = "content_video_keyword"
