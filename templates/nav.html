@@ -5,9 +5,9 @@
         </h1>
     </div>
     <nav>
-        {% comment %} <a href={% url "dashboard:index" %} class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">대시보드</a> {% endcomment %}
-        {% comment %} <a href={% url "contents:index" %} class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">컨텐츠 관리</a> {% endcomment %}
-        {% comment %} <a href={% url "account:index" %} class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">사용자 관리</a> {% endcomment %}
-        <a href="/admin/" class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">데이터베이스 관리</a>
+        <a href="" class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">DashBoard</a>
+        <a href="{% url 'builder-video:netflix' %}" class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">넷플릭스 Parser</a>
+        <a href="{% url 'builder-video:netflix-boxoffice' %}" class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">넷플릭스 박스오피스 Parser</a>
+        <a href="/admin" class="block py-2 px-4 text-sm hover:bg-gray-700 hover:text-white">ADMIN 관리</a>
     </nav>
 </aside>
