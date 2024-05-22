@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 
 from .logger import error_log, info_log
 
+
 class S3Client:
     def __init__(self, region=None):
         self._region = region
@@ -20,19 +21,18 @@ class S3Client:
             region_name=self._region
         )
         info_log(self.__class__.__name__, "S3 client created")
-        
 
     def upload_file(self, file_path, destination):
-        file_name = file_path.split('/')[-1]  
+        file_name = file_path.split('/')[-1]
         destination = destination + file_name
         try:
-            self._response = self._client.upload_file(file_path, self._aws_bucket_name, destination)
+            self._client.upload_file(file_path, self._aws_bucket_name, destination)
             info_log(self.__class__.__name__, f"File uploaded to S3 {self._aws_bucket_name}/{destination}")
             return destination
         except ClientError as e:
             error_log(self.__class__.__name__, f"Fail to upload file to S3. {e}")
             return False
-    
+
     def create_presigned_url(self, object_name, expiration=3600):
         try:
             response = self._client.generate_presigned_url(
@@ -48,8 +48,7 @@ class S3Client:
         except ClientError as e:
             error_log(self.__class__.__name__, f"Fail to create presigned URL. {e}")
             return None
-        
+
     def close(self):
         info_log(self.__class__.__name__, "S3 client closed")
         self._client.close()
-        
