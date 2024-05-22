@@ -14,9 +14,7 @@ from builder_video.models import (
     Genre,
 )
 
-'''
-create video
-'''
+
 def create_video(new_video):
     video = Video.objects.create(
         type = new_video['type'],
@@ -32,6 +30,7 @@ def create_video(new_video):
 
     return video
 
+
 def create_actor(new_cast):
     actor = Actor.objects.create(
         name = new_cast['name'],
@@ -41,6 +40,7 @@ def create_actor(new_cast):
     actor.save()
 
     return actor
+
 
 def create_staff(new_staff):
     staff = Staff.objects.create(
@@ -52,6 +52,7 @@ def create_staff(new_staff):
 
     return staff
 
+
 def create_genre(new_genre):
     genre = Genre.objects.create(
         name = new_genre['name'],
@@ -59,6 +60,7 @@ def create_genre(new_genre):
     genre.save()
 
     return genre
+
 
 def create_video_actor(video, new_actor):
     find_actor = Actor.objects.filter(name=new_actor['name']).all()
@@ -70,6 +72,7 @@ def create_video_actor(video, new_actor):
     
     return True
 
+
 def create_video_staff(video, new_staff):
     find_staff = Staff.objects.filter(name=new_staff['name']).all()
     if find_staff.exists():
@@ -80,6 +83,7 @@ def create_video_staff(video, new_staff):
 
     return True
 
+
 def create_video_genre(video, new_genre):
     find_genre = Genre.objects.filter(name=new_genre['name']).all()
     if find_genre.exists():
@@ -89,6 +93,7 @@ def create_video_genre(video, new_genre):
     video.genre.add(genre)
     
     return True
+
 
 def create_video_thumbnail(video, new_thumbnail):
     VideoThumbnail.objects.create(
@@ -101,6 +106,7 @@ def create_video_thumbnail(video, new_thumbnail):
 
     return True
 
+
 def create_video_watch(video, new_watch):
     VideoWatch.objects.create(
         video = video,
@@ -109,6 +115,7 @@ def create_video_watch(video, new_watch):
     ).save()
 
     return True
+
 
 def create_content_data(new_content):
     object_name = "create_content_data"
@@ -131,10 +138,12 @@ def create_content_data(new_content):
         error_log(object_name, "Video data creation failed. platform_id: {} / {}".format(new_content['platform_id'], e))
         return False
 
-def exist_content_video(id=None, platform_id=None):
+
+def exist_content_video(video_id=None, platform_id=None):
     try:
-        if id:
-            video = Video.objects.filter(id=id)
+        video = None
+        if video_id:
+            video = Video.objects.filter(id=video_id)
         elif platform_id:
             video = Video.objects.filter(platform_id=platform_id)
 
@@ -143,45 +152,51 @@ def exist_content_video(id=None, platform_id=None):
         else:
             return False
     except Exception as e:
-        error_log("exist_video", f"Failed to check video existence. {e}")
+        error_log("exist_video", "Failed to check video existence: {}".format(e))
         return False
-    finally:
-        video = None
-'''
-get video
-'''
-def get_video(id):
+
+
+def get_video(video_id):
     try:
-        video = Video.objects.get(id=id)
-        info_log("get_video", "Video search successful with ID. {}".format(id))
+        video = Video.objects.get(id=video_id),
+        info_log("get_video", "Video search successful with ID: {}".format(id))
         return video
     
     except Exception as e:
-        error_log("get_video", "Video retrieval failed with ID. id: {id} / {e}".format(id=id, e=e))
+        error_log("get_video", "Video retrieval failed with ID: {} / {}".format(id, e))
         return None
-    
+
+
 def get_video_by_platform_id(platform_id):
-    video = Video.objects.get(platform_id=platform_id)
-    return video
+    try:
+        video = Video.objects.get(platform_id=platform_id)
+        return video
+    except Exception as e:
+        error_log(
+            "get_video_by_platform_id",
+            "Video retrieval failed with platform_id: {} / {}".format(platform_id, e)
+        )
+        return None
 
 
-'''
-videos
-'''
 def get_videos():
     pass
+
 
 def get_video_by_title(title):
     videos = Video.objects.filter(title=title).all()
     return videos
+
 
 def get_videos_by_genre(genre):
     # videos = Video.objects.filter(genres__genre=genre).all()
     # return videos
     pass
 
+
 def get_videos_by_cast(cast):
     pass
+
 
 def get_videos_by_staff(staff):
     pass
