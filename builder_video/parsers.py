@@ -14,7 +14,11 @@ from .properties import (
     URL_NETFLIX_CONTENT
 )
 
+
 class BeautyfulSoupParser:
+    def __init__(self):
+        self._soup = None
+
     def set_beautyfulsoup(self, html):
         parser = "html.parser"
         self._soup = BeautifulSoup(html, parser)
@@ -44,6 +48,9 @@ class BeautyfulSoupParser:
 
 
 class SeleniumParser:
+    def __init__(self):
+        self._selenium = None
+
     def set_selenium(self, url, driver="chrome"):
         options = Options()
         options.add_experimental_option("detach", True)
@@ -175,11 +182,8 @@ class SeleniumParser:
             info_log(self.__class__.__name__, "Selenium driver is closed")
             self._selenium.quit()
 
+
 class NetflixParser(BeautyfulSoupParser, SeleniumParser):
-    def __init__(self):
-        self._soup = None
-        self._selenium = None
-        info_log(self.__class__.__name__, "NetflixParser init")
 
     def login_netflix(self, id, pw):
         info_log(self.__class__.__name__, "Try to login netflix. id={}".format(id))
@@ -211,75 +215,78 @@ class NetflixParser(BeautyfulSoupParser, SeleniumParser):
             error_log(self.__class__.__name__, "Failed to import content. {}".format(e))
             return None
             
-    def get_most_watched(self):
+    def get_contents(self):
         info_log(self.__class__.__name__, "Try to get most watched contents")
         try:
+            # 넷플릭스 로그인
             self.set_selenium(URL_NETFLIX_LOGIN)
             self.selenium_wait(2)
             self.login_netflix(getattr(settings, "NETFLIX_ID"), getattr(settings, "NETFLIX_PW"))
             self.selenium_wait(2)
-
-            # 시리즈 TOP10과 영화 TOP10을 담을 리스트 초기화
+            # 컨텐츠와 랭크 정보를 담을 리스트 초기화
+            ranks = []
             contents = []
-
             # 컨텐츠 파싱작업
             content_rows = self.selenium_elements(type="class", value="lolomoRow")
             for content_row in content_rows:
                 # 컨텐츠가 화면에 보이도록 스크롤 이동
                 self.selenium_scroll_move(target=content_row)
                 self.selenium_wait(2)
-                # 가져온 컨텐츠가 mostWatched 이면 데이터 파싱 진행
-                if self.selenium_attribute(target=content_row, attr="data-list-context") == "mostWatched":
-                    # 컨텐츠의 더보기 요소를 클릭하여 추가 요소가 렌더링 되도록 함
-                    handleNext = self.selenium_element(type="class", value="handleNext", target=content_row)
-                    self.selenium_click(target=handleNext)
-                    self.selenium_wait(2)
-                    # 컨텐츠 타이틀
-                    content_row_title = self.selenium_element(type="class", value="rowHeader", target=content_row).text
-                    # content_row 에 담긴 데이터 리스트
-                    content_row_items = self.selenium_elements(type="class", value="slider-item", target=content_row)
-                    # 컨텐츠별 프리픽스 설정
-                    type = ""
-                    if content_row_title == "오늘 대한민국의 TOP 10 시리즈":
-                        type = "11"
-                    elif content_row_title == "오늘 대한민국의 TOP 10 영화":
-                        type = "10"
-                    # 컨텐츠 갯수만큼 반복
-                    for item in content_row_items:
-                        # 필수 정보 파싱
+                # 컨텐츠의 더보기 요소를 클릭하여 추가 요소가 렌더링 되도록 함
+                handle_next = self.selenium_element(type="class", value="handleNext", target=content_row)
+                self.selenium_click(target=handle_next)
+                self.selenium_wait(2)
+                # 컨텐츠 타이틀
+                content_row_title = self.selenium_element(type="class", value="rowHeader", target=content_row).text
+                # content_row 에 담긴 데이터 리스트
+                content_row_items = self.selenium_elements(type="class", value="slider-item", target=content_row)
+                # content_row type
+                content_row_type = self.selenium_attribute(target=content_row, attr="data-list-context")
+                # 컨텐츠 갯수만큼 반복
+                for item in content_row_items:
+                    # 필수 정보 파싱
+                    content = dict()
+                    link = self.selenium_element(type="tag", value="a", target=item)
+                    link = self.selenium_attribute(target=link, attr="href")
+                    content['platform_id'] = link.split("?")[0].split("/watch/")[1]
+                    content['watch'] = [{"type": "10", "url": link}]
+                    # mostWatched 일 경우 rank 정보 수집
+                    if content_row_type == "mostWatched":
+                        rank_dict = dict()
+                        if content_row_title == "오늘 대한민국의 TOP 10 시리즈":
+                            rank_dict['type'] = "series"
+                        elif content_row_title == "오늘 대한민국의 TOP 10 영화":
+                            rank_dict['type'] = "movies"
                         rank = self.selenium_element(type="tag", value="svg", target=item)
                         rank = self.selenium_attribute(target=rank, attr="id").split("-")[1]
-                        rank = int(rank)
-                        link = self.selenium_element(type="tag", value="a", target=item)
-                        link = self.selenium_attribute(target=link, attr="href")
-                        platform_id = link.split("?")[0].split("/watch/")[1]
-                        thumbnail = self.selenium_element(type="tag", value="img", target=item)
-                        thumbnail = self.selenium_attribute(target=thumbnail, attr="src")
-                        
-                        new_content = self.get_content_netflix(platform_id)
-                        new_content['rank'] = rank
-                        new_content['thumbnail'].append({"type": "10", "url": thumbnail, "extension": "", "size": 0})
-
+                        rank_dict['rank'] = int(rank)
+                        rank_dict['platform_code'] = "10"
+                        rank_dict['platform_id'] = str(content['platform_id'])
+                        rank_dict['thumbnail'] = self.selenium_attribute(
+                            target=self.selenium_element(type="tag", value="img", target=item),
+                            attr="src"
+                        )
                         # 중복데이터 방지
-                        if new_content not in contents:
-                                contents.append(new_content)
-                # 가져온 컨텐츠가 mostWatched가 아니면 continue
-                else:
-                    continue
-
+                        if rank_dict not in ranks:
+                            ranks.append(rank_dict)
+                        # 포스터 아까우니까 컨텐츠에도 일단 담음
+                        content['thumbnail'] = {"type": "10", "url": rank_dict['thumbnail'], "extension": "", "size": 0}
+                    # 중복데이터 방지
+                    if content not in contents:
+                        contents.append(content)
             # rank 순으로 정렬
-            contents = sorted(contents, key=lambda k: (k['type'], k['rank']))
-
+            ranks = sorted(ranks, key=lambda k: (k['type'], k['rank']))
+            # Write Log
             info_log(self.__class__.__name__, "Most watched contents parsing success")
-            # 파싱한 데이터 리스트 형태로 리턴
-            return contents
+            # 파싱한 데이터 리턴
+            return contents, ranks
         except Exception as e:
+            # Write Log
             error_log(self.__class__.__name__, "Failed to most watched contents parsing. {}".format(e))
-            return None
-        finally:
-            self.selenium_close()
+            # 에러 발생시 None
+            return None, None
     
-    def parse_content_netflix(self, html):
+    def parse_content(self, html):
         info_log(self.__class__.__name__, "Try to parse netflix content")
         try:
             self.set_beautyfulsoup(html)        

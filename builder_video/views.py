@@ -77,7 +77,19 @@ class NetflixBoxOfficeView(LoginRequiredMixin, ListView):
     login_url = DJANGO_LOGIN_URL
     redirect_field_name = DJANGO_REDIRECT_FIELD_NAME
     template_name = "builder/video/netflix/boxoffice.html"
-    contents_file = "data/netflix/boxoffice/{}_{}_{}_{}_{}.json".format("10", datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour)
+    path_file = "data/netflix/"
+    path_file_contents = path_file + "contents_{}_{}_{}_{}.json".format(
+        datetime.now().year,
+        datetime.now().month,
+        datetime.now().day,
+        datetime.now().hour
+    )
+    path_file_ranks = path_file + "ranks_{}_{}_{}_{}.json".format(
+        datetime.now().year,
+        datetime.now().month,
+        datetime.now().day,
+        datetime.now().hour
+    )
 
     def get(self, request, **kwargs):
         # scrap == on 데이터 파싱 시작
@@ -89,39 +101,66 @@ class NetflixBoxOfficeView(LoginRequiredMixin, ListView):
 
             if request.GET.get('view_mode'):
                 view_mode = request.GET.get('view_mode')
-            
+
             # 파일에서 컨텐츠 로드
-            contents = self.load_contents_from_file()
+            contents = self.load_from_file(self.path_file_contents)
+            ranks = self.load_from_file(self.path_file_ranks)
 
             # 파일이 없으면 넷플릭스 파싱
-            if contents is None:
+            if contents is None or ranks is None:
                 parser = NetflixParser()
-                contents = parser.get_most_watched()
+                contents, ranks = parser.get_contents()
+                parser.close()
+                # contents 가져오기
+                parse_contents = []
+                for content in contents:
+                    if exist_content_video(platform_id=content['platform_id']):
+                        # TODO: 이미 존재하는 컨텐츠 DB에 있는데 데이터 불러오기
+                        continue
+                    parser = NetflixParser()
+                    url = URL_NETFLIX_CONTENT + "/" + content['platform_id']
+                    with urlopen(url) as response:
+                        html = response.read()
+                    new_content = parser.parse_content(html)
+                    parser.close()
+                    print("=============================================================================")
+                    print(content)
+                    print(new_content)
+                    if content.get('thumbnail') and new_content.get('thumbnail'):
+                        new_content['thumbnail'].append(content['thumbnail'])
+                    parse_contents.append(new_content)
+                contents = parse_contents
+                parser.close()
                 # 가져온 컨텐츠를 파일에 저장
-                self.save_contents_to_file(contents)
-            
+                self.save_to_file(self.path_file_contents, contents)
+                self.save_to_file(self.path_file_ranks, ranks)
+
             # contents 분리
             content_ids = []
-            movies = []
-            series = []
+            rank_movies = []
+            rank_series = []
+
+            for rank in ranks:
+                if rank['type'] == "10":
+                    rank_movies.append(rank)
+                elif rank['type'] == "11":
+                    rank_series.append(rank)
+            movies = sorted(rank_movies, key=lambda x: x['rank'])
+            series = sorted(rank_series, key=lambda x: x['rank'])
+
             for content in contents:
                 content_ids.append(content['platform_id'])
-                if content['type'] == "10":
-                    movies.append(content)
-                elif content['type'] == "11":
-                    series.append(content)            
-            movies = sorted(movies, key=lambda x: x['rank'])
-            series = sorted(series, key=lambda x: x['rank'])
             
             # context 생성
             context = {
                 "view_mode": view_mode,
                 "parser": parser,
                 "content_ids": ",".join(content_ids),
-                "contents": {
+                "ranks": {
                     "movies": movies,
                     "series": series
-                }
+                },
+                "contents": contents
             }
 
             info_log(self.__class__.__name__, "END. Netflix box office data parsing")
@@ -144,11 +183,6 @@ class NetflixBoxOfficeView(LoginRequiredMixin, ListView):
             if exist_content_video(platform_id=content['platform_id']):
                 info_log(self.__class__.__name__, "Already exist. platform_id={}".format(content['platform_id']))
                 continue
-            
-            # 썸네일 로컬 저장, S3 업로드 처리, 썸네일 URL 변경
-            
-            # Thumbnail Update
-            # content['thumbnails'] = thumbnails
 
             # Database creation
             video = create_content_data(content)
@@ -176,35 +210,29 @@ class NetflixBoxOfficeView(LoginRequiredMixin, ListView):
         # 화면 출력
         return render(request, self.template_name, context=context)
 
-    def load_contents_from_file(self):
+    def load_from_file(self, path_file):
         try:
-            loaded_data = ""
-            with open(self.contents_file, "r") as file:
-                loaded_data = json.load(file)
-
-            contents = loaded_data['contents']
-
+            with open(path_file, "r") as file:
+                contents = json.load(file)
             if len(contents) > 0 or contents is not None:
-                info_log(self.__class__.__name__, "Load from file successful. file={}".format(self.contents_file))
-                return contents
+                info_log(self.__class__.__name__, "Load from file successful. file={}".format(path_file))
             else:
-                error_log(self.__class__.__name__, "Failed to load from file. file={}".format(self.contents_file))
-                return None
-            
+                error_log(self.__class__.__name__, "Failed to load from file. file={}".format(path_file))
+            return contents
         except Exception as e:
-            error_log(self.__class__.__name__, "Failed to load from file. file={}, error={}".format(self.contents_file, e))
+            error_log(self.__class__.__name__, "Failed to load from file. file={}, error={}".format(path_file, e))
             return None
 
-    def save_contents_to_file(self, contents):
+    def save_to_file(self, path_file, content):
         try:
-            with open(self.contents_file, "w") as file:
-                json.dump(obj={"contents": contents}, fp=file, indent=4)
-            info_log(self.__class__.__name__, "Save to file success. file={}".format(self.contents_file))
+            with open(path_file, "w") as file:
+                json.dump(obj=content, fp=file, indent=4)
+            info_log(self.__class__.__name__, "Save to file success. file={}".format(self.path_file))
             return True
         except Exception as e:
-            error_log(self.__class__.__name__, "Failed to save to file. file={} / e={}".format(self.contents_file, e))
+            error_log(self.__class__.__name__, "Failed to save to file. file={} / e={}".format(self.path_file, e))
             return False
-        
+
 
 class NetflixDetailView(LoginRequiredMixin, DetailView):
     login_url = DJANGO_LOGIN_URL
